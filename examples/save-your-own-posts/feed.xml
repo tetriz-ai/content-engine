@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>A sample personal blog</title>
+    <link>https://blog.example.com</link>
+    <item>
+      <title>Why I stopped re-running red builds</title>
+      <link>https://blog.example.com/stopped-re-running-red-builds</link>
+      <pubDate>Tue, 29 Sep 2026 08:00:00 GMT</pubDate>
+      <description>A short teaser the feed also carries.</description>
+      <content:encoded><![CDATA[
+        <p>For a year our team treated a red build as a suggestion. Someone would hit re-run, it would go green, and we would move on.</p>
+        <p>It felt fast. It was not: every re-run hid a test we had stopped trusting.</p>
+        <h2>What changed</h2>
+        <p>We started tagging a test as flaky the second time it failed and passed on a re-run, and we kept a list on the team wiki.</p>
+        <ul><li>The list was short.</li><li>The same five tests were on it every week.</li></ul>
+        <p>Fixing those five did more for trust in CI than any dashboard. Nobody had to be told to stop re-running: once a red build meant something again, people started reading it.</p>
+        <figure><img src="https://blog.example.com/chart.png"/><figcaption>Re-runs per week</figcaption></figure>
+      ]]></content:encoded>
+    </item>
+    <item>
+      <title>Members only: our CI budget</title>
+      <link>https://blog.example.com/ci-budget</link>
+      <pubDate>Fri, 25 Sep 2026 08:00:00 GMT</pubDate>
+      <description><![CDATA[<p>This post is for paid subscribers.</p>]]></description>
+    </item>
+  </channel>
+</rss>

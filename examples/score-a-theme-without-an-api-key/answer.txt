@@ -1,0 +1,3 @@
+SCORE: 8
+FIT: YES
+WHY: Flaky tests and CI re-runs are the core of the writer's CI reliability beat.

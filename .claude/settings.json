@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import yaml\")",
+      "Bash(python3 -c \"import sys; print(sys.prefix != sys.base_prefix)\")",
+      "Bash((cd packages/scanner-core && python3 -m unittest discover -s tests))",
+      "Bash((cd packages/content-engine && python3 -m unittest discover -s tests))",
+      "Bash(python3 -m unittest discover -s tests)",
+      "Bash(scripts/run-examples.sh)",
+      "Bash(python3 packages/content-engine/archive_fetch.py --help)",
+      "Bash(python3 packages/content-engine/archive_tag.py --help)",
+      "Bash(pip install ruff==0.16.10 mypy==2.4.0)",
+      "Bash(ruff check .)",
+      "Bash(ruff format --check .)",
+      "Bash(mypy)",
+      "Bash(pip install pip-audit==2.10.1)",
+      "Bash(pip-audit -r packages/scanner-core/requirements.txt)",
+      "Bash(pip install shellcheck-py==0.11.0.1)",
+      "Bash(shellcheck scripts/run-examples.sh examples/*/run.sh)"
+    ]
+  }
+}

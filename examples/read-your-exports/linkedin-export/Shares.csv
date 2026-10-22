@@ -1,0 +1,5 @@
+Date,ShareLink,ShareCommentary,SharedUrl,MediaUrl,Visibility
+2026-03-10 08:30:00,https://social.example.com/posts/example-author-1,"Our build went from 22 minutes to 9 this quarter.
+
+The biggest win was the boring one: a dependency cache.",,,MEMBER_NETWORK
+2026-03-12 12:00:00,https://social.example.com/posts/example-author-2,,https://blog.example.com/ci,,MEMBER_NETWORK

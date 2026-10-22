@@ -1,0 +1,13 @@
+content-engine
+Copyright 2026 Workloom Solutions Private Limited
+
+This repository includes the following third-party material:
+
+- CODE_OF_CONDUCT.md is adapted from the Contributor Covenant, version 2.1,
+  https://www.contributor-covenant.org/version/2/1/code_of_conduct/,
+  licensed under CC BY 4.0, https://creativecommons.org/licenses/by/4.0/.
+
+Optional host-installed SEO/GEO integrations retain their upstream Apache-2.0
+and benchmark MIT terms. Full reference notices, source revisions and the
+separately installed Pillow demo dependency are documented in THIRD-PARTY-NOTICES.md.
+The optional skill and benchmark implementations are not bundled here.

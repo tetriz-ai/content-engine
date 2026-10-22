@@ -1,0 +1,44 @@
+# Project metadata and tool settings. Nothing is built or published from this
+# file: the scripts run from the repo, and this drives lint, type check and tests.
+[project]
+name = "content-engine"
+version = "0.1.0"
+description = "Turns Hacker News, Reddit and blog discussions into evidence-graded themes and drafts only the ones you approve."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md", "third_party/licenses/*"]
+dependencies = ["PyYAML>=6.0,<7"]
+
+[project.urls]
+Repository = "https://github.com/tetriz-ai/content-engine"
+Issues = "https://github.com/tetriz-ai/content-engine/issues"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+extend-exclude = ["working", ".venv-lint"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# The code uses %-formatting throughout; converting it is churn, not a fix.
+ignore = ["UP031"]
+
+[tool.ruff.lint.per-file-ignores]
+# Each test module imports its guard first, before the standard library, and
+# puts its package on sys.path before importing it.
+"packages/*/tests/*.py" = ["I001", "E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+  "scanner_core", "write_reference", "relevance_scorer", "report", "archive_fetch", "archive_tag",
+]
+
+[tool.mypy]
+# mypy 2.x checks against 3.10 at the lowest; the 3.9 floor is held by ruff's
+# py39 target and the CI test job on 3.9.
+python_version = "3.10"
+files = ["packages/scanner-core/scanner_core.py", "packages/content-engine"]
+exclude = ["/tests/"]
+ignore_missing_imports = true
+check_untyped_defs = true

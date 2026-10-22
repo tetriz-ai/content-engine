@@ -1,0 +1,56 @@
+{
+  "kind": "editorial",
+  "accent": "#ac6730",
+  "brand": "CONTENT ENGINE",
+  "titles": [
+    "Many sources. One signal bank.",
+    "Find the themes worth writing.",
+    "Your evidence. Your approval.",
+    "From approved theme to reviewed writing.",
+    "Ready to review. Yours to publish."
+  ],
+  "sources": [
+    "Hacker News",
+    "Reddit",
+    "Product Hunt*",
+    "X*",
+    "News search",
+    "Medium/Substack",
+    "Competitor RSS",
+    "Vendor blogs",
+    "LinkedIn: pasted"
+  ],
+  "footers": [
+    "Configured sources illustrated \u00b7 PH/X need access \u00b7 LinkedIn is pasted, never scraped",
+    "Fictional signal lineage \u00b7 STRONG is model judgment, not independent verification",
+    "Approve each theme and format \u00b7 unapproved formats stay pending",
+    "Illustrated blog route \u00b7 LinkedIn uses Editorial Draft directly \u00b7 no live model run",
+    "Illustrative publishing package \u00b7 no automatic publication"
+  ],
+  "evidence": [
+    {
+      "path": "packages/content-engine/examples/theme-example-ci-flakiness.md",
+      "contains": "**Coverage tier:** STRONG"
+    },
+    {
+      "path": ".github/assets/demo/saved-answer.txt",
+      "contains": "# Flaky tests cost more than the re-run"
+    },
+    {
+      "path": "packages/content-engine/config.example.yaml",
+      "contains": "domains: [medium.com, substack.com]"
+    },
+    {
+      "path": ".claude/commands/content-engine.md",
+      "contains": "8. **LinkedIn**"
+    },
+    {
+      "path": "pipeline-manifest.json",
+      "contains": "\"editorial-draft\""
+    },
+    {
+      "path": "packages/content-engine/examples/theme-example-ci-flakiness.md",
+      "contains": "**Formats approved:** [blog, linkedin, video]"
+    }
+  ]
+}

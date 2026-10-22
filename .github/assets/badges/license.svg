@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="102" height="24" viewBox="0 0 102 24" role="img" aria-label="license: MIT">
+  <!-- Copyright 2026 Workloom Solutions Private Limited. SPDX-License-Identifier: MIT -->
+  <title>license: MIT</title>
+  <rect width="102" height="24" rx="4" fill="#444444"/>
+  <path d="M64 0h34a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H64Z" fill="#0066a5"/>
+  <g fill="#ffffff" text-anchor="middle" font-family="Verdana,Arial,sans-serif" font-size="11">
+    <text x="32.0" y="16">license</text>
+    <text x="83.0" y="16">MIT</text>
+  </g>
+</svg>

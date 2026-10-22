@@ -1,0 +1,86 @@
+# Writer profile — EXAMPLE. Two independent, optional uses of the same file:
+#
+# 1. POV-fit relevance scoring (config.yaml -> cluster.writer_profile): a
+#    richer alternative to the simple static `relevance_context_file` —
+#    instead of one doc an LLM cross-references loosely, relevance_scorer.py
+#    scores each candidate cluster against what YOU actually write about —
+#    one real API call per cluster — and returns a score + a fit/no-fit
+#    verdict. Costs more than the static-doc approach, so it's a separate
+#    opt-in, not a replacement.
+#
+# 2. Voice matching at draft time (config.yaml -> write.voice_profile /
+#    write.<format>.voice_profile): write_reference.py reads this SAME
+#    file's archive_dir and injects those excerpts into the drafting
+#    prompt as style examples — "match how this person writes," not "is
+#    this cluster relevant to them." Same underlying asset (your own past
+#    published writing), a different pipeline stage. `topics` is ignored
+#    for this use; `archive_dir`, `content_types` and `max_examples` apply.
+#
+# Point both config keys at this one file, or maintain two separate copies
+# if your voice and your relevance topics diverge — either works.
+
+# Option A: an explicit topic list — simplest, no archive needed.
+topics:
+  - "CI/CD pipeline reliability"
+  - "flaky test detection and root-causing"
+  - "developer productivity metrics grounded in real data, not vibes"
+
+# Option B: point at a folder of your own past published posts instead of
+# (or alongside) the topic list above. Plain .md/.txt files, one post each.
+# Leave unset to use topics: alone.
+archive_dir: null   # e.g. working/writer-archive/
+
+# Where you already publish. archive_fetch.py saves each post, whole, into
+# archive_dir (and /content-engine refreshes it before drafting):
+#   python3 packages/content-engine/archive_fetch.py --profile <this file>
+# A post already saved is never fetched again, so a long first run can be
+# stopped and run again. Needs archive_dir set above.
+# archive_sources:
+#   - substack: yourname               # every post in the archive; or a custom domain
+#     min_gap_seconds: 1               # optional: seconds between requests
+#   - medium: "@yourhandle"            # the feed: your 10 most recent posts
+#   - medium_export: ~/Downloads/medium-export.zip     # Settings > Download your information
+#   - linkedin_export: ~/Downloads/linkedin-export.zip # Settings > Get a copy of your data
+#   - sitemap: https://blog.example.com/sitemap.xml    # a site's pages, one folder of it
+#     path_prefix: /guides/            # required: only pages under this folder
+#     max_pages: 2000                  # optional: the newest pages, up to this many
+#     min_gap_seconds: 1               # optional
+#   - rss: https://blog.example.com/feed # any RSS or Atom feed
+
+# The kinds of post you write. archive_tag.py tags each saved post with one
+# of them, and each new theme gets one too, so a draft's voice examples are
+# posts of the same kind. The list is yours to edit; posts and themes share
+# it. A post's category comes from its URL folder (/guides/ci-reliability/...
+# is ci-reliability), so it needs no list.
+content_types:
+  - postmortem
+  - tool comparison
+  - how-to
+  - checklist
+  - opinion list
+  - explainer
+  - news analysis
+  - personal story
+  - announcement
+  - other
+
+# How many past posts go into a draft's prompt as voice examples: posts of
+# the theme's content type first, then of its category, then of the closest
+# type. relevance_scorer.py shows this many of your newest posts. Default 5.
+max_examples: 5
+# Each example is read whole. Set excerpt_chars to cut each post to that
+# many characters (relevance_scorer.py cuts at 6000 when unset).
+# excerpt_chars: 6000
+# The cap across all examples together (default 100000 for the writer,
+# 60000 for the scorer). A post that does not fit is left out, not cut.
+# archive_max_chars: 100000
+# The model archive_tag.py uses with an API key (default claude-sonnet-5).
+# tag_model: claude-sonnet-5
+
+# How strict the fit bar is.
+#   loose  — err toward FIT when there's a plausible connection (fewer
+#            false negatives; some borderline themes get through)
+#   strict — only FIT when it clearly, directly matches (fewer false
+#            positives; a real connection can get missed)
+# Default: loose.
+strictness: loose

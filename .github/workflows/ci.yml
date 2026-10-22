@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies (hash-locked)
+        run: pip install --require-hashes -r packages/scanner-core/requirements-lock.txt
+      - name: Compile-check every Python file
+        run: python -m py_compile packages/scanner-core/*.py packages/content-engine/*.py scripts/install-skills.py scripts/resolve-context.py
+      - name: Check every example config and the command's frontmatter parse
+        run: |
+          python -c "
+          import glob, yaml
+          for f in sorted(glob.glob('packages/content-engine/*.example.yaml')):
+              yaml.safe_load(open(f))
+              print(f, 'OK')
+          f = '.claude/commands/content-engine.md'
+          front = open(f, encoding='utf-8').read().split('---\\n')[1]
+          assert isinstance(yaml.safe_load(front).get('description'), str), f
+          print(f, 'frontmatter OK')
+          "
+      - name: scanner-core tests
+        run: python -m unittest discover -s tests
+        working-directory: packages/scanner-core
+      - name: content-engine tests
+        run: python -m unittest discover -s tests
+        working-directory: packages/content-engine
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: pip install ruff==0.16.10 mypy==2.4.0
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+
+  vulnerabilities:
+    name: Vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: pip install pip-audit==2.10.1
+      - run: pip-audit -r packages/scanner-core/requirements.txt
+
+  command:
+    name: Command file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: The command ships where Claude Code loads it
+        run: |
+          test -f .claude/commands/content-engine.md || {
+            echo "Missing .claude/commands/content-engine.md: /content-engine would not register"
+            exit 1
+          }
+      - name: Every shipped path the command names exists
+        run: |
+          missing=0
+          for p in $(grep -oE 'packages/[A-Za-z0-9_./-]+\.(py|yaml|md|txt)' .claude/commands/content-engine.md | sort -u); do
+            case "$p" in
+              # written by the first run, never shipped
+              */config.yaml|*/hn-reddit-scan.yaml|*/ph.yaml|*/context.md|*/writer-profile.yaml) continue ;;
+            esac
+            test -e "$p" || { echo "missing: $p"; missing=1; }
+          done
+          exit $missing
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: pip install --require-hashes -r packages/scanner-core/requirements-lock.txt
+      - run: pip install shellcheck-py==0.11.0.1
+      - run: shellcheck scripts/run-examples.sh examples/*/run.sh
+      - run: scripts/run-examples.sh
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # sha256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's checksums file
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks (pinned, checksum verified)
+        run: |
+          archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${archive}"
+          echo "${GITLEAKS_SHA256}  ${archive}" | sha256sum -c -
+          tar -xzf "$archive" gitleaks
+      - name: Scan the git history
+        run: ./gitleaks git --no-banner --redact .

@@ -1,0 +1,79 @@
+# HN/Reddit scan config for content-engine — EXAMPLE.
+#
+# This is a worked example for a fictional dev-tools product (Example Corp's
+# made-up CI flakiness dashboard). Copy this file, rename
+# it, and replace every keyword/subreddit below with your own product's real
+# vocabulary and community.
+#
+# scanner_core.py reads this file directly (--config packages/content-engine/
+# hn-reddit-scan.example.yaml --platform all). Aim for breadth: several
+# phrasings of each idea, accepting some noise, because the cluster step
+# filters off-topic posts out later.
+
+lookback_hours: 48
+
+# Reddit's unauthenticated RSS allows roughly one request per ~10s per IP —
+# faster than that and every feed comes back 429. Each subreddit costs two
+# requests (new + hot), so 3 subreddits ≈ 1 minute of scanning. Raise this if
+# you still see 429s (a shared office IP burns the same budget); lower it at
+# your own risk.
+reddit_min_gap_seconds: 10
+
+hn:
+  tags: [story, show_hn, ask_hn]
+  min_points: 3
+
+subreddits:
+  # Replace with communities where YOUR practitioners actually hang out.
+  - {name: ExperiencedDevs}
+  - {name: devops}
+  - {name: programming}
+  - {name: SoftwareEngineering}
+  # A broader, noisier community for content breadth beyond your precise
+  # list — clustering's own judgment is expected to filter off-topic posts.
+  # Note the single 'l' — r/ArtificialInteligence is the real, large
+  # community; the correctly-spelled r/ArtificialIntelligence returns 404.
+  - {name: ArtificialInteligence}
+
+keywords:
+  # High-precision terms — almost always genuinely on-topic for your space.
+  # These are placeholders for a fictional CI-flakiness-dashboard product —
+  # replace with your own product's real, specific vocabulary.
+  precise:
+    - "flaky test detection"
+    - "ci pipeline reliability"
+    - "test flakiness"
+    - "build pipeline observability"
+    - "ci cd failure rate"
+
+  # High recall, clustering's own judgment filters hard. Widen with phrasing
+  # variants a real post is actually likely to use — don't just add synonyms
+  # of the precise layer, add the adjacent technical vocabulary of how your
+  # category of tool is actually built and discussed.
+  broad:
+    - "continuous integration"
+    - "test suite"
+    - "ci pipeline"
+    - "build reliability"
+    - "test infrastructure"
+
+  # Collides with off-topic meanings — the clustering step must confirm
+  # on-topic before treating a hit as a real signal.
+  watch:
+    - "flaky"   # also used colloquially outside any CI/testing context
+
+  # Natural-language pain phrasing — the layer a literal substring match
+  # under-serves the most. Write variants a real post is likely to contain,
+  # not one canonical phrasing.
+  persona_pain:
+    - "tests failing randomly"
+    - "ci is unreliable"
+    - "re-running failed tests"
+    - "cant trust the test suite"
+
+  # Competitor mentions as content signals. Disambiguate any bare name
+  # that collides with a common word or an unrelated brand, same as the
+  # layers above.
+  competitor:
+    - "competitor one"
+    - "competitor two"

@@ -1,0 +1,82 @@
+name: Live APIs
+
+# Checks the Product Hunt and X fetchers against the real APIs, which the
+# pull-request suite only stubs. Product Hunt runs weekly with a free
+# developer token; X is paid, so it runs only when started by hand.
+# A job whose secret is not set skips with a notice.
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  product-hunt:
+    name: Product Hunt (live)
+    runs-on: ubuntu-latest
+    env:
+      PH_API_TOKEN: ${{ secrets.PH_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: pip install --require-hashes -r packages/scanner-core/requirements-lock.txt
+      - name: Scan Product Hunt with the example config
+        run: |
+          if [ -z "$PH_API_TOKEN" ]; then
+            echo "::notice::PH_API_TOKEN is not set; skipping the live Product Hunt check."
+            exit 0
+          fi
+          python packages/scanner-core/scanner_core.py \
+            --config packages/content-engine/ph.example.yaml \
+            --platform ph --out "$RUNNER_TEMP/ph.json"
+          python -c "
+          import json, sys
+          out = json.load(open(sys.argv[1]))
+          print(len(out['candidates']), 'candidates;', len(out['failures']), 'failures')
+          sys.exit(1 if out['failures'] else 0)
+          " "$RUNNER_TEMP/ph.json"
+
+  x:
+    name: X (live)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - run: pip install --require-hashes -r packages/scanner-core/requirements-lock.txt
+      - name: Search X for one query
+        run: |
+          if [ -z "$TWITTER_BEARER_TOKEN" ]; then
+            echo "::notice::TWITTER_BEARER_TOKEN is not set; skipping the live X check."
+            exit 0
+          fi
+          cat > "$RUNNER_TEMP/x.yaml" <<'YAML'
+          twitter:
+            bearer_token_env: TWITTER_BEARER_TOKEN
+            lookback_hours: 24
+            max_results_per_query: 10
+            seed_queries:
+              - "github actions"
+          YAML
+          python packages/scanner-core/scanner_core.py \
+            --config "$RUNNER_TEMP/x.yaml" \
+            --platform twitter --out "$RUNNER_TEMP/x.json"
+          python -c "
+          import json, sys
+          out = json.load(open(sys.argv[1]))
+          print(len(out['candidates']), 'candidates;', len(out['failures']), 'failures')
+          sys.exit(1 if out['failures'] else 0)
+          " "$RUNNER_TEMP/x.json"

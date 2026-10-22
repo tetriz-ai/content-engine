@@ -1,0 +1,58 @@
+# Product Hunt scan config for content-engine — EXAMPLE.
+#
+# A separate file, like hn-reddit-scan.example.yaml. Fetched by
+# scanner_core.py (`scan_ph` + `fetch_details`): the post listing plus voter
+# and commenter detail, through Product Hunt's official GraphQL API only. No
+# profile or website scraping.
+#
+# Needs a Product Hunt developer token — optional source; skip this file
+# entirely (omit `scan.ph_config` from config.yaml) if you
+# don't want to set one up. Every other source works without it.
+
+ph:
+  # Get a token at https://www.producthunt.com/v2/oauth/applications — set it
+  # as this env var, in your environment or an .env file next to this config.
+  # Never commit the token itself.
+  token_env: PH_API_TOKEN
+
+  # `ph_day` = only launches on today's PH board (anchored to midnight
+  # America/Los_Angeles, when the board resets) — freshest option if you're
+  # running this on a daily cadence. `lookback` = a rolling window instead,
+  # better for an ad-hoc or less-frequent run. lookback_hours is also the
+  # fallback when ph_day's timezone database isn't available.
+  window: lookback
+  lookback_hours: 48
+  thin_day_floor: 5
+
+  posts_per_page: 20
+  max_pages: 4              # per topic
+
+  # Fit gate: a launch must look like your space before it consumes a
+  # detail-fetch slot (voters/commenters). Satisfied by a `keywords` hit OR
+  # one of `fit_topics`. Set to false to fall back to topic-scope only.
+  require_fit: true
+  min_votes: 0              # vote count isn't a reliable signal at board-open time
+
+  topics:
+    - developer-tools
+    - software-engineering
+    - open-source
+  fit_topics:               # PH topics that are on-topic for your space alone
+    - developer-tools
+    - software-engineering
+    - open-source
+    - saas
+  # Placeholder vocabulary for a fictional CI-flakiness-dashboard product
+  # from Example Corp — replace with your own product's real terms. Matching is a
+  # plain substring over name + tagline + description + topics, so prefer
+  # longer, more specific phrases over single common words.
+  keywords:
+    - ci pipeline
+    - flaky test
+    - test reliability
+    - build observability
+    - developer productivity
+
+  detail_fetch_top: 0       # opt-in only: voters/commenters for the top N candidates
+  voters_limit: 20
+  comments_limit: 20

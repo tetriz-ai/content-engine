@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "skills": {
+    "content-engine": ".",
+    "blog": "skills/blog",
+    "editorial-draft": "skills/editorial-draft"
+  },
+  "writing": {
+    "blog": [
+      "blog",
+      "editorial-draft"
+    ],
+    "linkedin": [
+      "editorial-draft"
+    ],
+    "video": [
+      "content-engine"
+    ]
+  },
+  "required_files": [
+    "SKILL.md",
+    "pipeline-manifest.json",
+    ".claude-plugin/plugin.json",
+    ".claude/commands/content-engine.md",
+    "commands/content-engine.md",
+    "commands/blog.md",
+    "commands/content-engine-weekly.md",
+    "scripts/install-skills.py",
+    "scripts/resolve-context.py",
+    "skills/blog/SKILL.md",
+    "skills/blog/references/workflow.md",
+    "references/planning.md",
+    "references/weekly.md",
+    "packages/content-engine/rules.md",
+    "packages/content-engine/config.example.yaml",
+    "packages/scanner-core/scanner_core.py",
+    "skills/editorial-draft/SKILL.md",
+    "skills/editorial-draft/ai-pattern-detection.md",
+    "skills/editorial-draft/integration-guide.md",
+    "skills/editorial-draft/references/external-content.md",
+    "skills/editorial-draft/reviews/clarity.md",
+    "skills/editorial-draft/reviews/completeness.md",
+    "skills/editorial-draft/reviews/detector.md",
+    "skills/editorial-draft/reviews/devils-advocate.md",
+    "skills/editorial-draft/reviews/hemingway.md",
+    "skills/editorial-draft/reviews/hitchcock.md",
+    "skills/editorial-draft/reviews/platform.md",
+    "skills/editorial-draft/reviews/voice.md",
+    "skills/editorial-draft/style-presets.md",
+    "packages/content-engine/README.md",
+    "packages/content-engine/archive_fetch.py",
+    "packages/content-engine/archive_tag.py",
+    "packages/content-engine/competitor-blog-scan.py",
+    "packages/content-engine/context.example.md",
+    "packages/content-engine/hn-reddit-scan.example.yaml",
+    "packages/content-engine/ph.example.yaml",
+    "packages/content-engine/relevance_scorer.py",
+    "packages/content-engine/report.py",
+    "packages/content-engine/write_reference.py",
+    "packages/content-engine/writer-profile.example.yaml",
+    "packages/scanner-core/README.md",
+    "packages/scanner-core/requirements.txt",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "packages/content-engine/.env.example",
+    "packages/content-engine/examples/content-signal-bank.example.jsonl",
+    "packages/content-engine/examples/draft-example-ci-flakiness-blog.md",
+    "packages/content-engine/examples/theme-example-ci-flakiness.md",
+    "THIRD-PARTY-NOTICES.md",
+    "third_party/licenses/seo-geo-Apache-2.0.txt",
+    "third_party/licenses/CITE-MIT.txt",
+    "third_party/licenses/CORE-EEAT-MIT.txt"
+  ],
+  "output_kinds": {
+    "blog": "article",
+    "linkedin": "post",
+    "video": "brief"
+  }
+}

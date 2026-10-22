@@ -1,0 +1,275 @@
+# Content Engine — EXAMPLE scan/cluster/brief/write config.
+#
+# Copy this to config.yaml and fill in your own sources/thresholds. A real
+# production config (real keywords, a real competitor list, real Semrush
+# seeds, a real Slack channel) should never be committed in its place —
+# keep that one local/untracked, same as any other file with your own
+# business specifics in it.
+#
+# Everything below is illustrative. Nothing here needs to be true for your
+# product — it's shaped like a real config (not a stub) so you can see what
+# a filled-in one looks like, then swap the specifics for your own.
+
+# ---------------------------------------------------------------------------
+# Scan (Phase 1) — where signals come from.
+# ---------------------------------------------------------------------------
+scan:
+  # HN/Reddit and Product Hunt each get their OWN keyword/topic config,
+  # deliberately separate from this file — see hn-reddit-scan.example.yaml
+  # and ph.example.yaml. Both are fetched through packages/scanner-core/
+  # scanner_core.py, which keeps no state: the signal bank below is the only
+  # dedupe.
+  # Paths below are relative to the repo root, because /content-engine runs
+  # from there. If you move files, update these paths and rerun
+  # `/content-engine --dry-run` to check they still resolve.
+  hn_reddit_config: packages/content-engine/hn-reddit-scan.example.yaml
+  ph_config: packages/content-engine/ph.example.yaml
+
+  bank_path: context-library/content-signal-bank.jsonl   # git-tracked, durable — never write elsewhere
+
+  news:
+    # WebSearch is LLM-driven — this list is what the model is told to
+    # search, not a script parameter. Anchor these to YOUR product's own
+    # vocabulary — the terms a practitioner in your space actually uses, not
+    # survey-style "state of X" phrasing. The four below are placeholders;
+    # replace them, don't just add to them.
+    lookback_days: 7
+    queries:
+      - "<your product category> open source tools 2026"
+      - "<your core technical concept> best practices"
+      - "<a known pain point your product addresses> survey"
+      - "<your product category> benchmark comparison 2026"
+    max_results_per_query: 8
+
+  semrush:
+    # Optional — needs a Semrush account + MCP server. Skip this whole block
+    # (or leave competitor_domains/seed_keywords empty) if you don't have one;
+    # every other source works without it.
+    seed_keywords:
+      - "<a keyword your buyer searches for>"
+      - "<a category term your product competes in>"
+    competitor_domains: [competitor-one.example.com, competitor-two.example.com]
+    database: us   # the Semrush regional database the reports read
+    # true: if your Semrush MCP server exposes an AI-overview / answer-engine
+    # visibility report (AEO — do you show up in ChatGPT/Perplexity/AI
+    # Overview answers, not just classic search rank), the run also runs it
+    # against the same seed_keywords. false (the default): it never runs.
+    # Extension point, not a hardcoded tool name — MCP servers vary; check
+    # what yours actually offers.
+    aeo_check: false
+
+  google_trends:
+    # Optional, off by default. No official public API exists for Google
+    # Trends — this is necessarily agent-driven (WebSearch or a
+    # browser/screenshot tool, whichever your harness supports), not a
+    # script like the sources above. See content-engine.md's Phase 1 for
+    # the exact mechanism. Leave keywords empty to skip entirely.
+    keywords:
+      - "<a term you'd expect to see rising or falling interest in>"
+
+  competitor_blogs:
+    # Verify each feed URL actually resolves and parses before adding it —
+    # fetch the blog's homepage and check for a declared
+    # <link rel="alternate" type="application/rss+xml">. Don't guess a /feed
+    # path; plenty of modern blogs (SPA-rendered ones especially) have none.
+    # No feed is listed by default, so a copied config fetches nothing made
+    # up and the run skips this source. Uncomment and fill in one entry per
+    # verified feed.
+    lookback_days: 14
+    feeds:
+      # example_competitor:
+      #   feed_url: https://competitor-one.example.com/feed/
+      #   verified: "<date you checked> — <what you found: status, content-type, item count>"
+      # another_competitor:
+      #   feed_url: https://competitor-two.example.com/blog/rss.xml
+      #   verified: "..."
+
+  platform_search:
+    # medium.com and substack.com are publishing PLATFORMS, not single blogs
+    # — no one RSS feed covers them. WebSearch's own allowed_domains param
+    # scopes the existing news.queries list to just these two domains,
+    # rather than guessing at individual authors'/publications' feed URLs.
+    domains: [medium.com, substack.com]
+    reuse_query_list: news.queries
+    reuse_lookback_days: news.lookback_days
+
+  vendor_blog_search:
+    # For a vendor/competitor blog confirmed to have NO RSS feed (an SPA that
+    # returns a 200 HTML shell for every guessed feed path) — track it via
+    # WebSearch instead of giving up on it entirely. Verify the no-feed
+    # finding yourself before relying on it; don't assume.
+    domains: []
+    reuse_query_list: news.queries
+    reuse_lookback_days: news.lookback_days
+
+  linkedin:
+    # No automated fetcher exists for LinkedIn — official API has no public
+    # read surface for this, and scraping is against its ToS. A human drops
+    # raw pasted posts/threads here; scan mode only ingests + normalizes
+    # what's already sitting in this directory.
+    seed_dir: working/content-engine/signals/linkedin   # gitignored — human-populated
+
+  # twitter:
+  #   Optional, off by default (with no `twitter:` block, --platform all
+  #   skips X and says so). X discontinued free developer API access in
+  #   Feb 2026 — this is pay-per-use, needs your own paid bearer token.
+  #   Uncomment and fill in only if you're bringing your own credential.
+  #
+  #   Uses the v2 `recent search` endpoint, which cannot go further back
+  #   than 7 days on this tier — lookback_hours above that is clamped to
+  #   just under 7 days, with a message, not an error. Full-archive search (further back)
+  #   needs a different, more expensive API product this module does not
+  #   call.
+  # twitter:
+  #   bearer_token_env: TWITTER_BEARER_TOKEN
+  #   lookback_hours: 48
+  #   max_results_per_query: 10   # per query, one page
+  #   seed_queries:
+  #     - "<a phrase your practitioners would actually post>"
+  #     - "<your product name, if you want to track direct mentions>"
+
+# ---------------------------------------------------------------------------
+# Cluster (Phase 2) — grouping rows where theme_id is null.
+# ---------------------------------------------------------------------------
+cluster:
+  min_signals_per_theme: 2       # below this, not worth briefing — leave un-spent for next run
+
+  # Optional. If set, this file's content is used to judge whether a
+  # candidate cluster is actually relevant to you. Can be a product doc, an
+  # ICP description, a list of topics you write about — whatever frames
+  # "does this matter to me."
+  # Omit entirely to skip relevance grading: every cluster passes through
+  # ungraded, judged on evidence strength alone (coverage_tier below).
+  # Free — just a cross-reference, no extra API call.
+  relevance_context_file: packages/content-engine/context.example.md
+
+  # Optional, and separate from the line above — a richer alternative:
+  # an actual judged fit SCORE per cluster (via relevance_scorer.py), not
+  # just a cross-reference. Costs one extra API call per candidate cluster.
+  # If both this and relevance_context_file above are set, this one wins
+  # (it's the more rigorous check); if only relevance_context_file is set,
+  # that's used instead; if neither, relevance grading is skipped entirely.
+  # Unset by default — uncomment to turn it on.
+  # writer_profile: packages/content-engine/writer-profile.example.yaml
+
+# ---------------------------------------------------------------------------
+# Brief (Phase 3) — evidence grading + dedupe window + digest.
+# ---------------------------------------------------------------------------
+brief:
+  coverage_tier:
+    strong_min_signals: 3
+    strong_min_distinct_sources: 2
+    # anything not meeting strong = THIN
+  dedupe_window_days: 21   # a theme within this window (per content-themes-log.md) is not re-briefed
+  max_signal_age_days: 30  # looser than dedupe_window_days on purpose — see rules.md
+
+  # Slack is optional — set via an env var, never commit a real channel ID.
+  # The env var holds a channel ID (C…) or a user ID (U…); a user ID sends
+  # each card as a DM to that person — use that while trying this out, so
+  # nothing lands in a shared channel. Leave the env var unset to skip the
+  # digest post; the theme doc still gets written, you just approve it by
+  # hand instead. Reactions on posted cards are read back by --mode approve.
+  slack_channel_env: CONTENT_ENGINE_SLACK_CHANNEL
+  themes_log: context-library/content-themes-log.md
+  themes_dir: docs/content-themes
+
+  format_eligibility:
+    # blog and video-short have no extra bar beyond coverage_tier itself —
+    # both formats can hedge a THIN theme naturally. linkedin and
+    # video-proper are different: public, fast-amplified, hard to walk back
+    # once posted — a theme sitting at the bare-minimum STRONG floor is a
+    # bad fit for that confidence, even though identical evidence is fine
+    # hedged in a blog or framed as a question in a short.
+    linkedin:
+      # A post under your own name (write.linkedin.voice_override.pov:
+      # personal, the default) needs only a theme of this tier: no margin,
+      # no extra sources. STRONG or THIN.
+      personal_requires: STRONG
+      # A company voice (pov: company) needs the bar below.
+      tier_required: STRONG
+      margin_signals: 2   # signal_count >= strong_min_signals + 2 (5+, not just 3)
+      min_distinct_sources: 3   # OR distinct_sources >= 3 (not just the 2-source floor)
+      # OR at least one signal attributable to a named external source (a
+      # competitor's own report, a named study, a named vendor announcement)
+      # — not aggregated forum chatter. A judgment call at brief time, not a
+      # field to pattern-match. Any ONE of the three conditions is enough.
+    video_proper:
+      # The company LinkedIn bar above (tier_required plus one margin
+      # condition), whatever pov says: personal_requires never applies here.
+      same_as: linkedin
+
+# ---------------------------------------------------------------------------
+# Write (Phase 4) — per-format settings. Never auto-publish; every output is
+# a draft for a human to review and post manually.
+# ---------------------------------------------------------------------------
+write:
+  # Default: bundled Blog -> Editorial Draft for blogs, Editorial Draft for LinkedIn.
+  # Both run in the host session with full editorial reviews; no API setup.
+  # An explicit per-format command opts into a custom/reference writer instead.
+  #
+  # Optional model override for write_reference.py specifically — set once
+  # here instead of passing --model on every invocation. Priority is
+  # --model flag > write.<format>.model below > this > the script's own
+  # built-in default. Omit entirely to just use the built-in default.
+  # model: claude-sonnet-5
+
+  # Optional voice-matching profile, same priority pattern as model above
+  # (--profile flag > write.<format>.voice_profile below > this > off).
+  # Points at the SAME writer-profile.yaml shape used by writer_profile
+  # above — its archive_dir excerpts are reused as voice examples (match
+  # HOW you write) rather than topic-fit scoring (what you write about).
+  # Unset by default — uncomment to turn it on.
+  # voice_profile: packages/content-engine/writer-profile.example.yaml
+
+  blog:
+    # command: packages/content-engine/write_reference.py  # explicit one-prompt override
+    length: standard
+    # model: claude-sonnet-5   # overrides the top-level write.model above, for this format only
+    # voice_profile: packages/content-engine/writer-profile.example.yaml   # overrides the top-level one above, for this format only
+
+    # Optional SEO/AEO pass — adds a meta description, a title tag, target
+    # keywords (inferred only from the theme doc's own title/rationale/
+    # signals, never invented), and AEO-friendly structure (a direct,
+    # citable opening answer; clear scannable subheadings). Blog only — no
+    # meta-description/keyword concept applies to a LinkedIn post or a
+    # video brief. Off by default: this is an optional pass on the OUTPUT,
+    # separate from the input-side keyword/AEO-visibility signals that
+    # scan.semrush.aeo_check (above) feeds into topic discovery.
+    seo_optimize: false
+
+  linkedin:
+    word_count_target: [200, 500]
+    voice_override:
+      # personal (the default): your own first-person voice, for a post under
+      # your name. Personal stories come only from the theme doc's
+      # "Author's take"; the writer never invents one.
+      # company: the company's "we", for a company page.
+      pov: personal
+      # Defaults to true for pov: company and false for pov: personal.
+      # no_personal_failure_hooks: true
+      cta_target: "<what you want readers to do: comment, follow, read the full post>"
+
+  video:
+    # This produces a BRIEF (topic, angle, hook, key facts, persona), not a
+    # script.
+    persona_targets: [practitioner, manager, executive]
+    default_length: short
+    short:
+      duration_target_sec: [60, 90]
+      target_facts_per_brief: [1, 2]
+    proper:
+      duration_target_min: [3, 5]
+      target_facts_per_brief: [3, 4]
+
+# ---------------------------------------------------------------------------
+# Non-goals. Keep these in your own config too — they're what keeps this a
+# research/drafting tool instead of a spam engine.
+#
+#   - embeddings/BERTopic clustering — not implemented; LLM-judgment
+#     clustering is the default, escalate to embeddings only if it gets
+#     noisy at real volume.
+#   - a LinkedIn scraper — don't build one; see scan.linkedin above.
+#   - AUTO-PUBLISH ANYWHERE, FOR ANY FORMAT. Non-negotiable. Draft-only is
+#     enforced in three places: this config, rules.md, and the command file
+#     itself. A human presses send, always.
+# ---------------------------------------------------------------------------

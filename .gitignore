@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv-lint/
+venv/
+.ruff_cache/
+.mypy_cache/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Secrets and scratch
+.env
+working/
+
+# Your own config, written by the first /content-engine run
+packages/content-engine/config.yaml
+packages/content-engine/hn-reddit-scan.yaml
+packages/content-engine/ph.yaml
+packages/content-engine/context.md
+packages/content-engine/writer-profile.yaml
