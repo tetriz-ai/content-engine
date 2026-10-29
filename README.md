@@ -3,6 +3,8 @@
   <img alt="Content Engine: Groups practitioner posts into themes, and drafts content for the ones you approve." src=".github/assets/banner-light.svg" width="880">
 </picture>
 
+<a href="https://www.producthunt.com/products/product-bench-gtm-engines?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-product-bench-gtm-engines" target="_blank" rel="noopener noreferrer"><img alt="Product Bench &amp; GTM Engines - AI workflows for product, content, community, and outbound | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1295907&amp;theme=light&amp;t=1793258717509"></a>
+
 <a href=".github/assets/demo.gif"><img alt="Configured sources feed a signal bank; fictional signals become a sourced theme, human approval selects a format, and Blog with Editorial Draft prepares reviewed writing" src=".github/assets/demo-static.png" width="1000"></a>
 
 Many sources → evidence-backed themes → your approval → reviewed writing. [View animated demo](.github/assets/demo.gif) · [Demo notes](.github/assets/demo/README.md).
